@@ -37,16 +37,19 @@ RUN update-alternatives --install /usr/bin/java java ${JAVA_HOME}/bin/java 30723
   --slave /usr/bin/jar jar ${JAVA_HOME}/bin/jar \
   --slave /usr/bin/jarsigner jarsigner ${JAVA_HOME}/bin/jarsigner \
   --slave /usr/bin/javadoc javadoc ${JAVA_HOME}/bin/javadoc && \
+  update-alternatives --display java && \
   update-alternatives --install /usr/bin/java8 java8 ${JAVA8}/bin/java 30723 \
   --slave /usr/bin/javac8 javac8 ${JAVA8}/bin/javac \
   --slave /usr/bin/jar8 jar8 ${JAVA8}/bin/jar \
   --slave /usr/bin/jarsigner8 jarsigner8 ${JAVA8}/bin/jarsigner \
   --slave /usr/bin/javadoc8 javadoc8 ${JAVA8}/bin/javadoc && \
+  update-alternatives --display java8 && \
   update-alternatives --install /usr/bin/java17 java17 ${JAVA17}/bin/java 30723 \
   --slave /usr/bin/javac17 javac17 ${JAVA17}/bin/javac \
   --slave /usr/bin/jar17 jar17 ${JAVA17}/bin/jar \
   --slave /usr/bin/jarsigner17 jarsigner17 ${JAVA17}/bin/jarsigner \
   --slave /usr/bin/javadoc17 javadoc17 ${JAVA17}/bin/javadoc && \
+  update-alternatives --display java17 && \
   echo "Testing Javac 8 path" && \
   javac8 -version && \
   echo "Testing Java 8 path" && \
