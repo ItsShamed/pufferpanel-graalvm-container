@@ -42,7 +42,7 @@ jobs:
         with:
           images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
           tags: |
-            $REPO:latest
+            ${{ env.IMAGE_NAME }}:latest
 
       - name: Build and push Docker image
         uses: docker/build-push-action@v3.1.1
@@ -87,7 +87,7 @@ jobs:
         with:
           images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
           tags: |
-            $REPO:latest
+            ${{ env.IMAGE_NAME }}:java
 
       - name: Build and push Docker image
         uses: docker/build-push-action@v3.1.1
