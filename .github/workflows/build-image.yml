@@ -16,12 +16,13 @@ jobs:
     
     steps:
       - id: files
+        if: github.event_name == 'push'
         name: Changed files
         uses:  jitterbit/get-changed-files@v1
 
   build-all-bundle:
     needs: check-changed-files
-    if: contains(needs.check-changed-files.check-changed-files.steps.files.output, 'Dockerfile') || github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+    if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch' || contains(needs.check-changed-files.check-changed-files.steps.files.output, 'Dockerfile')
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -68,7 +69,7 @@ jobs:
 
   build-java:
     needs: check-changed-files
-    if: contains(needs.check-changed-files.steps.files.output, 'Dockerfile')
+    if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch' || contains(needs.check-changed-files.check-changed-files.steps.files.output, 'Dockerfile')
     runs-on: ubuntu-latest
     permissions:
       contents: read
