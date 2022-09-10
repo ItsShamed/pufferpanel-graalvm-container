@@ -1,9 +1,9 @@
-FROM ghcr.io/graalvm/jdk:java8 AS java8
-FROM ghcr.io/graalvm/jdk:latest AS java17
+FROM --platform=${TARGETPLATFORM} ghcr.io/graalvm/jdk:java8 AS java8
+FROM --platform=${TARGETPLATFORM} ghcr.io/graalvm/jdk:latest AS java17
 
-FROM pufferpanel/pufferpanel:base-devel AS builder
+FROM --platform=${TARGETPLATFORM} pufferpanel/pufferpanel:base-devel AS builder
 
-FROM debian
+FROM --platform=${TARGETPLATFORM} debian
 
 COPY --from=builder /pufferpanel /pufferpanel
 EXPOSE 8080 5657
