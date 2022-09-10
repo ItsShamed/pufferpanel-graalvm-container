@@ -1,5 +1,9 @@
 # Pufferpanel with GraalVM as default JVM
 
+This repo contains the Dockerfiles of custom Pufferpanel images with
+GraalVM included.
+
+You can also use pull them from the GitHub container registry:
 - `latest` contains the dependencies for other servers (scrdc, NodeJS...)
 - `java` contains only GraalVM
 
