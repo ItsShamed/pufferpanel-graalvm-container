@@ -14,11 +14,11 @@ jobs:
     steps:
       - id: files
         name: Changed files
-        uses:  jitterbit/get-changed-files@v1*
+        uses:  jitterbit/get-changed-files@v1
 
   build-all-bundle:
     needs: check-changed-files
-    if: contains(jobs.check-changed-files.steps.files.output, 'Dockerfile')
+    if: contains(needs.check-changed-files.check-changed-files.steps.files.output, 'Dockerfile')
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -65,7 +65,7 @@ jobs:
 
   build-java:
     needs: check-changed-files
-    if: contains(jobs.check-changed-files.steps.files.output, 'Dockerfile')
+    if: contains(needs.check-changed-files.steps.files.output, 'Dockerfile')
     runs-on: ubuntu-latest
     permissions:
       contents: read
