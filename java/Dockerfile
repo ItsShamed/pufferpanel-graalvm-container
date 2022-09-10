@@ -13,6 +13,15 @@ RUN mkdir -p /etc/pufferpanel && \
 
 ARG DEBIAN_FRONTEND=noninteractive
 
+RUN if [ -n "$APTPROXY" ] ; then \
+  echo "deb $APTPROXY/ubuntu-focal/ focal main restricted universe multiverse" > /etc/apt/sources.list ; \
+  echo "deb $APTPROXY/ubuntu-focal-updates/ focal-updates main restricted universe multiverse" >> /etc/apt/sources.list ; \
+  echo "deb $APTPROXY//ubuntu-focal-backports/ focal-backports main restricted universe multiverse" >> /etc/apt/sources.list ;\
+  fi
+
+RUN apt-get update && \
+  apt-get install -y git wget curl zip unzip musl
+
 COPY --from=java17 /usr/lib64/graalvm/graalvm22-ce-java17 /usr/lib/jvm/graalvm22-ce-java17
 COPY --from=java8 /usr/lib64/graalvm/graalvm21-ce-java8 /usr/lib/jvm/graalvm21-ce-java8
 
@@ -50,6 +59,9 @@ RUN update-alternatives --install /usr/bin/java java ${JAVA_HOME}/bin/java 30723
   java -version && \
   echo "Testing javac path" && \
   javac -version
+
+# Cleanup
+RUN apt-get clean all && rm -rf /var/lib/apt/lists/*
 
 ENV PUFFER_LOGS=/etc/pufferpanel/logs \
   PUFFER_PANEL_TOKEN_PUBLIC=/etc/pufferpanel/public.pem \
