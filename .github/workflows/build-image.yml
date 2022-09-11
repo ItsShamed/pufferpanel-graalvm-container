@@ -13,21 +13,35 @@ env:
 jobs:
   check-changed-files:
     runs-on: ubuntu-latest
+
+    outputs:
+      files_changed: ${{ steps.check.output.changed }}
     
     steps:
       - if: github.event_name == 'push'
         uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
 
       - id: files
         if: github.event_name == 'push'
         name: Verify Changed files
-        uses:  tj-actions/verify-changed-files@v11.1
-        with:
-          files: |
-            *.sh
-            *.yml
-            Dockerfile*
-            **/Dockerfile
+        uses:  tj-actions/changed-files@latest
+
+      - id: check
+        if: github.event_name == 'push'
+        name: Check if files changed
+        run: |
+          for file in ${{ steps.files.outputs.all_changed_files }}; do
+            if echo $file | grep "Dockerfile|.*\\.yml|.*\\.sh"; then
+              echo "$file has been changed"
+              echo "::set-output name=changed::true"
+              exit 0
+            fi
+          done
+          echo "No file found"
+          echo "::set-output name=changed::false"
+
 
   build-base-image:
     name: Build base image
@@ -35,7 +49,7 @@ jobs:
     if: | 
       github.event_name == 'schedule' 
       || github.event_name == 'workflow_dispatch' 
-      || needs.check-changed-files.steps.files.output.files_changed == 'true'
+      || needs.check-changed-files.outputs.files_changed == 'true'
     runs-on: ubuntu-latest
 
     strategy:
@@ -98,7 +112,7 @@ jobs:
 
       - id: tag
         name: Retrieve latest tag
-        run: "echo \":set-ouput name=tag::$(echo ${{ fromJSON(steps.release.outputs.release).tag_name }} | cut -d '-' -f 2)\""
+        run: "echo \"::set-ouput name=tag::$(echo ${{ fromJSON(steps.release.outputs.release).tag_name }} | cut -d '-' -f 2)\""
 
   build-all-bundle:
     name: Build massive image
