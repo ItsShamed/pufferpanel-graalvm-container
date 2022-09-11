@@ -110,7 +110,7 @@ jobs:
     steps:
       - id: release
         name: Check latest GraalVM release
-        run: "echo \"::set-output name=release::$(curl -H 'Accept: application/vnd.github+json' -H 'Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}' https://api.github.com/graalvm/graalvm-ce-builds/releases/latest\""
+        run: "echo \"::set-output name=release::$(curl -H 'Accept: application/vnd.github+json' -H 'Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}' https://api.github.com/graalvm/graalvm-ce-builds/releases/latest)\""
 
       - id: tag
         name: Retrieve latest tag
