@@ -32,8 +32,10 @@ jobs:
         if: github.event_name == 'push'
         name: Check if files changed
         run: |
+          echo "Pattern: Dockerfile|*.\.yml|*.\.sh"
           for file in ${{ steps.files.outputs.all_changed_files }}; do
-            if echo $file | grep "Dockerfile|.*\\.yml|.*\\.sh"; then
+            echo $file
+            if echo $file | grep "Dockerfile|.*\.yml|.*\.sh"; then
               echo "$file has been changed"
               echo "::set-output name=changed::true"
               exit 0
