@@ -1,9 +1,10 @@
-FROM --platform=${TARGETPLATFORM} ghcr.io/graalvm/jdk:java8 AS java8
-FROM --platform=${TARGETPLATFORM} ghcr.io/graalvm/jdk:latest AS java17
+ARG TARGETPLATFORM
+FROM --platform=${TARGETPLATFORM} ghcr.io/itsshamed/pufferpanel-graalvm-container:base AS builder
 
-FROM --platform=${TARGETPLATFORM} pufferpanel/pufferpanel:base-devel AS builder
-
+ARG TARGETPLATFORM
 FROM --platform=${TARGETPLATFORM} debian
+ARG GRAALVM_VERSION=22.2.0
+ARG TARGETPLATFORM
 
 COPY --from=builder /pufferpanel /pufferpanel
 EXPOSE 8080 5657
@@ -22,35 +23,35 @@ RUN if [ -n "$APTPROXY" ] ; then \
 RUN apt-get update && \
   apt-get install -y git wget curl zip unzip musl
 
-COPY --from=java17 /usr/lib64/graalvm/graalvm22-ce-java17 /usr/lib/jvm/graalvm22-ce-java17
-COPY --from=java8 /usr/lib64/graalvm/graalvm21-ce-java8 /usr/lib/jvm/graalvm21-ce-java8
 
-ENV JAVA_HOME=/usr/lib/jvm/graalvm22-ce-java17
-ENV JAVA17=/usr/lib/jvm/graalvm22-ce-java17
-ENV JAVA8=/usr/lib/jvm/graalvm21-ce-java8
+ENV JAVA_HOME=/usr/lib/jvm/graalvm-ce-java17-${GRAALVM_VERSION}
+ENV JAVA17=/usr/lib/jvm/graalvm-ce-java17-${GRAALVM_VERSION}
+ENV JAVA11=/usr/lib/jvm/graalvm-ce-java11-${GRAALVM_VERSION}
 
-RUN update-alternatives --install /usr/bin/java java ${JAVA_HOME}/bin/java 30723 \
+COPY download_java.sh .
+RUN ./download_java.sh $TARGETPLATFORM $GRAALVM_VERSION && \
+  update-alternatives --install /usr/bin/java java ${JAVA_HOME}/bin/java 30723 \
   --slave /usr/bin/javac javac ${JAVA_HOME}/bin/javac \
   --slave /usr/bin/jar jar ${JAVA_HOME}/bin/jar \
   --slave /usr/bin/jarsigner jarsigner ${JAVA_HOME}/bin/jarsigner \
   --slave /usr/bin/javadoc javadoc ${JAVA_HOME}/bin/javadoc && \
   update-alternatives --display java && \
-  update-alternatives --install /usr/bin/java8 java8 ${JAVA8}/bin/java 30723 \
-  --slave /usr/bin/javac8 javac8 ${JAVA8}/bin/javac \
-  --slave /usr/bin/jar8 jar8 ${JAVA8}/bin/jar \
-  --slave /usr/bin/jarsigner8 jarsigner8 ${JAVA8}/bin/jarsigner \
-  --slave /usr/bin/javadoc8 javadoc8 ${JAVA8}/bin/javadoc && \
-  update-alternatives --display java8 && \
+  update-alternatives --install /usr/bin/java11 java11 ${JAVA11}/bin/java 30723 \
+  --slave /usr/bin/javac11 javac11 ${JAVA11}/bin/javac \
+  --slave /usr/bin/jar11 jar11 ${JAVA11}/bin/jar \
+  --slave /usr/bin/jarsigner11 jarsigner11 ${JAVA11}/bin/jarsigner \
+  --slave /usr/bin/javadoc11 javadoc11 ${JAVA11}/bin/javadoc && \
+  update-alternatives --display java11 && \
   update-alternatives --install /usr/bin/java17 java17 ${JAVA17}/bin/java 30723 \
   --slave /usr/bin/javac17 javac17 ${JAVA17}/bin/javac \
   --slave /usr/bin/jar17 jar17 ${JAVA17}/bin/jar \
   --slave /usr/bin/jarsigner17 jarsigner17 ${JAVA17}/bin/jarsigner \
   --slave /usr/bin/javadoc17 javadoc17 ${JAVA17}/bin/javadoc && \
   update-alternatives --display java17 && \
-  echo "Testing Javac 8 path" && \
-  javac8 -version && \
-  echo "Testing Java 8 path" && \
-  java8 -version && \
+  echo "Testing Javac 11 path" && \
+  javac11 -version && \
+  echo "Testing Java 11 path" && \
+  java11 -version && \
   echo "Testing Javac 17 path" && \
   javac17 -version && \
   echo "Testing Java 17 path" && \

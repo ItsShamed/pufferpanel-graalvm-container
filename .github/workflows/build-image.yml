@@ -15,18 +15,104 @@ jobs:
     runs-on: ubuntu-latest
     
     steps:
+      - if: github.event_name == 'push'
+        uses: actions/checkout@v3
+
       - id: files
         if: github.event_name == 'push'
-        name: Changed files
-        uses:  jitterbit/get-changed-files@v1
+        name: Verify Changed files
+        uses:  tj-actions/verify-changed-files@v11.1
+        with:
+          files: |
+            *.sh
+            *.yml
+            Dockerfile*
+            **/Dockerfile
+
+  build-base-image:
+    name: Build base image
+    needs: check-changed-files
+    if: | 
+      github.event_name == 'schedule' 
+      || github.event_name == 'workflow_dispatch' 
+      || needs.check-changed-files.steps.files.output.files_changed == 'true'
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        platform: [ "linux/amd64", "linux/arm64" ]
+
+    steps:
+      - name: Checkout Pufferpanel repo
+        uses: actions/checkout@v3
+        with:
+          repository: 'pufferpanel/pufferpanel'
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v1
+
+      - name: Set up Docker Buildx
+        id: buildx
+        uses: docker/setup-buildx-action@v1
+
+      - name: Log in to the Container registry
+        uses: docker/login-action@v2.0.0
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract metadata (tags, labels) for Docker
+        id: meta
+        uses: docker/metadata-action@v4.0.1
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          tags: |
+            base
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v3.1.1
+        with:
+          context: all
+          platforms: ${{ matrix.platform }}
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+
+
+  get-graalvm-release:
+    needs: check-changed-files
+    if: | 
+      github.event_name == 'schedule' 
+      || github.event_name == 'workflow_dispatch' 
+      || needs.check-changed-files.steps.files.output.files_changed == 'true'
+    runs-on: ubuntu-latest
+
+    outputs:
+      version: ${{ steps.tag.outputs.tag }}
+
+    steps:
+      - id: release
+        name: Check latest GraalVM release
+        run: "echo \"::set-output name=release::$(curl -H 'Accept: application/vnd.github+json' -H 'Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}' https://api.github.com/graalvm/graalvm-ce-builds/releases/latest\""
+
+      - id: tag
+        name: Retrieve latest tag
+        run: "echo \":set-ouput name=tag::$(echo ${{ fromJSON(steps.release.outputs.release).tag_name }} | cut -d '-' -f 2)\""
 
   build-all-bundle:
-    needs: check-changed-files
-    if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch' || contains(needs.check-changed-files.check-changed-files.steps.files.output, 'Dockerfile')
+    name: Build massive image
+    needs: 
+      - check-changed-files
+      - get-graalvm-release
+      - build-base-image
     runs-on: ubuntu-latest
     permissions:
       contents: read
       packages: write
+
+    env:
+      GRAALVM_VERSION: ${{ needs.get-graalvm-release.outputs.version }}
 
     strategy:
       matrix:
@@ -57,6 +143,7 @@ jobs:
           images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
           tags: |
             latest
+            all-graalvm-${{ env.GRAALVM_VERSION }}
 
       - name: Build and push Docker image
         uses: docker/build-push-action@v3.1.1
@@ -65,15 +152,24 @@ jobs:
           platforms: ${{ matrix.platform }}
           push: true
           tags: ${{ steps.meta.outputs.tags }}
+          build-args: |
+            GRAALVM_VERSION: ${{ env.GRAALVM_VERSION }}
           labels: ${{ steps.meta.outputs.labels }}
+    
 
   build-java:
-    needs: check-changed-files
-    if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch' || contains(needs.check-changed-files.check-changed-files.steps.files.output, 'Dockerfile')
+    name: Build Java image
+    needs: 
+      - check-changed-files
+      - get-graalvm-release
+      - build-base-image
     runs-on: ubuntu-latest
     permissions:
       contents: read
       packages: write
+
+    env:
+      GRAALVM_VERSION: ${{ needs.get-graalvm-release.outputs.version }}
 
     strategy:
       matrix:
@@ -104,12 +200,15 @@ jobs:
           images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
           tags: |
             java
+            java-graalvm-${{ env.GRAALVM_VERSION }}
 
       - name: Build and push Docker image
         uses: docker/build-push-action@v2
         with:
           context: java
           platforms: ${{ matrix.platform }}
+          build-args: |
+            GRAALVM_VERSION: ${{ env.GRAALVM_VERSION }}
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
