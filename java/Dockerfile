@@ -27,7 +27,8 @@ ENV JAVA17=/usr/lib/jvm/graalvm-ce-java17-${GRAALVM_VERSION}
 ENV JAVA11=/usr/lib/jvm/graalvm-ce-java11-${GRAALVM_VERSION}
 
 COPY download_java.sh .
-RUN ./download_java.sh $TARGETPLATFORM $GRAALVM_VERSION && \
+RUN chmod +x download_java.sh && \
+  ./download_java.sh $TARGETPLATFORM $GRAALVM_VERSION && \
   update-alternatives --install /usr/bin/java java ${JAVA_HOME}/bin/java 30723 \
   --slave /usr/bin/javac javac ${JAVA_HOME}/bin/javac \
   --slave /usr/bin/jar jar ${JAVA_HOME}/bin/jar \

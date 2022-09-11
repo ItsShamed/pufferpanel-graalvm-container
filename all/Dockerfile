@@ -28,7 +28,8 @@ ENV JAVA17=/usr/lib/jvm/graalvm-ce-java17-${GRAALVM_VERSION}
 ENV JAVA11=/usr/lib/jvm/graalvm-ce-java11-${GRAALVM_VERSION}
 
 COPY download_java.sh .
-RUN ./download_java.sh ${TARGETPLATFORM} ${GRAALVM_VERSION} && \
+RUN chmod +x download_java.sh && \
+  ./download_java.sh ${TARGETPLATFORM} ${GRAALVM_VERSION} && \
   update-alternatives --install /usr/bin/java java ${JAVA_HOME}/bin/java 30723 \
   --slave /usr/bin/javac javac ${JAVA_HOME}/bin/javac \
   --slave /usr/bin/jar jar ${JAVA_HOME}/bin/jar \
@@ -47,10 +48,10 @@ RUN ./download_java.sh ${TARGETPLATFORM} ${GRAALVM_VERSION} && \
   --slave /usr/bin/jarsigner17 jarsigner17 ${JAVA17}/bin/jarsigner \
   --slave /usr/bin/javadoc17 javadoc17 ${JAVA17}/bin/javadoc && \
   update-alternatives --display java17 && \
-  echo "Testing Javac 8 path" && \
-  javac8 -version && \
-  echo "Testing Java 8 path" && \
-  java8 -version && \
+  echo "Testing Javac 11 path" && \
+  javac11 -version && \
+  echo "Testing Java 11 path" && \
+  java11 -version && \
   echo "Testing Javac 17 path" && \
   javac17 -version && \
   echo "Testing Java 17 path" && \
