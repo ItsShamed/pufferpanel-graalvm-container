@@ -114,7 +114,7 @@ jobs:
 
       - id: tag
         name: Retrieve latest tag
-        run: "echo \"::set-ouput name=tag::$(echo ${{ fromJSON(steps.release.outputs.release).tag_name }} | cut -d '-' -f 2)\""
+        run: "echo \"::set-output name=tag::$(echo ${{ fromJSON(steps.release.outputs.release).tag_name }} | cut -d '-' -f 2)\""
 
   build-all-bundle:
     name: Build massive image
@@ -137,6 +137,9 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
+
+      - name: Get the version
+        run: echo "GRAALVM_VERSION=${{ needs.get-graalvm-release.outputs.version }}"
 
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v1
