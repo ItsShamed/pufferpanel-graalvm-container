@@ -26,7 +26,7 @@ jobs:
       - id: files
         if: github.event_name == 'push'
         name: Verify Changed files
-        uses:  tj-actions/changed-files@latest
+        uses:  tj-actions/changed-files@v29.0.4
 
       - id: check
         if: github.event_name == 'push'
