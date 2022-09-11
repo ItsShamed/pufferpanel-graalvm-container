@@ -1,8 +1,6 @@
-ARG TARGETPLATFORM
-FROM --platform=${TARGETPLATFORM} ghcr.io/itsshamed/pufferpanel-graalvm-container:base AS builder
+FROM ghcr.io/itsshamed/pufferpanel-graalvm-container:base AS builder
 
-ARG TARGETPLATFORM
-FROM --platform=${TARGETPLATFORM} debian
+FROM debian
 ARG GRAALVM_VERSION=22.2.0
 ARG TARGETPLATFORM
 
