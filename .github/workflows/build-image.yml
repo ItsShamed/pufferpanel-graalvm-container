@@ -101,7 +101,7 @@ jobs:
     if: | 
       github.event_name == 'schedule' 
       || github.event_name == 'workflow_dispatch' 
-      || needs.check-changed-files.steps.files.output.files_changed == 'true'
+      || needs.check-changed-files.outputs.files_changed == 'true'
     runs-on: ubuntu-latest
 
     outputs:
