@@ -15,7 +15,7 @@ jobs:
     runs-on: ubuntu-latest
 
     outputs:
-      files_changed: ${{ steps.check.output.changed }}
+      files_changed: ${{ steps.check.outputs.changed }}
     
     steps:
       - if: github.event_name == 'push'
