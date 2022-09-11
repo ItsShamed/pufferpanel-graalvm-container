@@ -9,5 +9,3 @@ You can also use pull them from the GitHub container registry:
 
 __**PLEASE NOTE**__ that these images do NOT provide `java8` and `java16` commands.
 For Java 8 use `java11` instead. For Java 16 use `java17` instead.
-
-For older versions you can use the `java8` command.
